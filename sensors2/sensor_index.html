@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simone</title>
+    
+    <style>
+
+        body{
+            background: radial-gradient(circle, 
+            rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%);
+            display: flex; 
+            align-items: center;
+            flex-direction: column;
+        }
+    
+        .login{
+            display:block;
+            text-align: center;
+            background-color: rgb(88, 62, 255);
+            border-radius: 20px;
+            height: 100%;
+            padding-bottom:5px;
+        }
+    
+            .login > .inputs_container{
+                display: block;
+            }
+    
+            .login > .buttons_container{
+                display: block;
+            }
+    
+                .login > .inputs_container > .inputs {
+                    border-radius: 5px;
+                    height: 30px; 
+                    margin: 10px;
+                    width: 50%;
+                }
+    
+                .login > .buttons_container > .buttons{
+                    font-size: 20px;
+                    margin-right: 20px;
+                    background-color: wheat;
+                    border-radius:5px;
+                    height: 30px;
+                    width: 100px;
+                    margin-bottom: 10px;
+                }
+        .buttons:hover{
+            cursor: pointer;
+            background-color: brown;
+        }
+    
+        .sensor_page{
+            display:block;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+    
+        .sensor_page > .list_container{
+            text-align: left;
+            
+        }
+    
+        .list_container > h2{
+            text-align: center;
+        }
+    
+        .list_container > .sensorList{
+            display: block;
+            background-color: rgb(151, 86, 0);
+            height: 100%;
+            border-radius: 15px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-right: 10px;
+        }
+    
+        .add_sensor{
+            display:block;
+            text-align: center;
+            background-color: rgb(227, 135, 235);
+            border-radius: 15px;
+            height: 100%;
+            padding:20px;
+        }
+    
+            .add_sensor > .inputs_container{
+                display: block;
+            }
+    
+            .add_sensor > .buttons_container{
+                    display: block;
+            }
+    
+                .add_sensor >.inputs_container > .inputs{
+                    height: 30px;
+                    margin: 10px;
+                    border-radius: 5px;
+                }
+    
+                .add_sensor > .buttons_container > .buttons{
+                    height: 30px;
+                    width: 100px;
+                    background-color: rgb(0, 37, 139);
+                    margin-top: 10px;
+                    border-radius: 10px;
+                }
+    
+        .remove_sensor{
+            margin-top: 20px;
+            display: block;
+            background-color: rgb(142, 0, 64);
+            border-radius: 15px;
+            text-align: center;
+            height: 100%;
+            padding: 20px;
+    
+        }
+    
+            .remove_sensor > .container{
+                display: block;
+            }
+    
+                .remove_sensor > .container > .inputs{
+                    border-radius: 5px;
+                    height: 30px;
+                    margin: 10px;
+                }
+    
+                .remove_sensor > .container > .buttons{
+                    border-radius: 10px;
+                    height: 30px;
+                    background-color: aquamarine;
+                }
+    
+    </style>
+</head>
+
+<body>
+    <h2> HOME SESSOR™</h2>
+    <div class="login">
+        <h2>Insert your credentials</h2>
+        <div class="inputs_container">
+            <input class="inputs mail" type="email" placeholder="Example@Email.com">
+            <input class="inputs pass" type="password" placeholder="Password">
+        </div>
+        <div class="buttons_container">
+            <button class="buttons" onclick="Login()">Login</button>
+            <button class="buttons" onclick="Register()">Register</button>
+        </div>
+    </div>
+    <div class="sensors_page" style="display: none">
+
+        <div class="list_container">
+            <h2> Sensor list</h2>
+            <ul class="sensorList">
+                <li>Name(Type) - Updates Every 100 ms</li>
+            </ul>
+        </div>
+        <div class="add_sensor">
+            <h2>Add sensor</h2>
+            <div class="inputs_container">
+                <input class="inputs nomeSensore" type="text" placeholder="Cucina"><br>
+                <input class="inputs tipoSensore" type="text" placeholder="Infrarossi"><br>
+                <input class="inputs aggiornamentoSensore" type="text" placeholder="2000"><br>
+            </div>
+            <div class="buttons_container">
+                <button class="buttons" onclick="AddSensor()">Add Sensor</button>
+            </div>
+        </div>
+        <div class="remove_sensor">
+            <h2> Remove sensor</h2>
+            <div class="container">
+                <input class="inputs nomeSensoreRem" type="text" placeholder="Cucina"><br>
+                <button class="buttons" onclick="RemoveSensor()" >Remove Sensor</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>  
+    <script>
+        const socket = io();
+        function Logged(){
+            document.querySelector(".login").style.display ="none";
+            document.querySelector(".sensors_page").style.display ="block";
+            loadSensor();
+        }
+
+        async function Register(){
+            const email = document.querySelector(".mail").value;
+            const password = document.querySelector(".pass").value;
+
+            fetch("/Register",{
+                method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body:JSON.stringify({email,password})
+            }).then(response=>response.json())
+            .then(data=>{
+                if(data.success){
+                    alert("Registrazione effettuata con successo")
+                }else{
+                    alert("Errore Registrazione")
+                }
+            })
+            .catch(e =>{
+                alert(e)
+            });
+        }
+
+        async function Login(){
+            const email = document.querySelector(".mail").value;
+            const password = document.querySelector(".pass").value;
+
+            fetch("/Login", {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({email,password})
+            }).then(response=>response.json())
+            .then(data=>{
+                if(data.success){
+                    Logged();
+                    alert("Login effettuato con successo");
+                }else{
+                    alert("Errore Login")
+                }
+            }).catch(e =>{
+                alert(e)
+            });
+        }
+
+        async function AddSensor(){
+            const name = document.querySelector(".nomeSensore").value;
+            const type = document.querySelector(".tipoSensore").value;
+            const update = document.querySelector(".aggiornamentoSensore").value;
+
+            fetch("/AddSensor", {
+                method: "POST",
+                headers:{
+                    "Content-Type" : "application/json"
+                },
+                body:JSON.stringify({name, type, update})
+            }).then(response=>response.json())
+            .then(data=>{
+                if(data.success){
+                    alert("Sensore addato")
+                }else{
+                    alert("Errore aggiunta")
+                }
+            });
+        }
+
+        async function loadSensor(){
+            fetch("/loadSensor", {
+                method:"GET",
+                headers:{},
+            }).then(response=>response.json())
+            .then(data=>{
+                const sensorList = document.querySelector(".sensorList");
+                sensorList.innerHTML = "";
+                data.sensori.forEach(sensore =>{ //variabile che non ha bisogno di nomi (filiberta)
+                    const li = document.createElement("li");
+                    li.textContent = `${sensore.name} (${sensore.type}) - Updates every ${sensore.update} ms - Value: `;
+                    sensorList.appendChild(li);
+                    val = document.createElement("span");
+                    val.textContent = "0";
+                    val.classList.add(`${sensore.name}`);
+                    li.appendChild(val);
+                });
+            });
+        }
+
+
+        async function RemoveSensor(){
+            const name = document.querySelector(".nomeSensoreRem").value;
+            
+            fetch("/RemoveSensor", {
+                method: "POST",
+                headers:{
+                    "Content-Type" : "application/json"
+                },
+                body:JSON.stringify({name})
+            }).then(response=>response.json())
+            .then(data=>{
+                if(data.success){
+                    alert("Sensore rimosso")
+                }else{
+                    alert("Errore rimozione")
+                }
+            });
+        }
+
+        socket.on('sensorAdd', ()=>{
+            loadSensor();
+        });
+
+        socket.on('sensorRem', n=>{
+            console.log(n);
+            loadSensor();
+            if(n==0){
+                const sensorList = document.querySelector(".sensorList");
+                const li = document.createElement("li");
+                li.textContent = "PILLOLO";
+                sensorList.appendChild(li);
+            }
+        });
+
+        socket.on("sensorUpdate", data=>{
+            console.log(data);
+            const sensorVal = document.querySelector(`.${data.name}`);
+            sensorVal.textContent = `${data.value}`;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aste</title>
+</head>
+
+<style>
+    body{
+        background-image: url("https://wallsrepublic.com/cdn/shop/files/BlackLeopardAnimalPrintWallpaperR8324.1.jpg?v=1686071395&width=1200");
+        background-size: cover;
+        flex-direction: column;
+        align-items: center;
+        display: flex;
+    }
+    div {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .login{
+        margin-top: 50px;
+        background-color: rgb(27, 167, 167);
+        display: block;
+        border-radius: 10px;
+        text-align: center;
+        align-items: center;
+    }
+
+        .login > .inputs_container{
+            align-items: center;
+            display: inline-block;
+        }
+
+            .login > .inputs_container > .inputs{
+                height: 30px;
+                width: 400px;
+                font-size: 20px;
+                text-align: center;
+                margin: 5px;
+                display: flex;
+                border-radius: 10px;
+                margin: 20px;
+            }
+
+            .login > .buttons_container > .buttons{
+                height: 30px;
+                width: 170px;
+                font-size: 20px;
+                border-radius: 10px;
+                margin-top: 15px;
+                margin-bottom: 40px;
+            }
+
+
+    .buttons:hover{
+        background-color: rgb(124, 246, 255);
+        cursor: pointer;
+    }
+
+
+    .add{
+        background-color: orange;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px;
+    }
+        .add > .inputs_container > .input{
+            font-size: 20px;
+            height: 30px;
+            width: 150px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            margin-left: 20px;
+            margin-right: 20px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .add > button{
+            height: 25px;
+            width: 90px;
+            font-size: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+
+        .add > button:hover{
+            cursor: pointer;
+            background-color: rgb(124, 246, 255);
+        }
+
+    .container{
+        display: flex;
+        margin: 10px;
+        max-width: 80%;
+        align-items: center;
+    }
+
+    .container > .asta {
+        display: inline-block;
+        min-width: 200px;
+        text-align: center;
+        border-radius: 20px;
+        background-color: orange;
+        box-shadow: 0 0 7px inset;
+        margin: 10px;
+    }
+
+    .container > .asta > h2{
+        display: inline-block;
+        margin: 10px;
+    }
+
+    .container > .asta > h3{
+        display: inline-block;
+        margin: 10px;
+    }
+
+    .container > .asta > button {
+        border-radius: 5px;
+        height: 20px;
+        width: 20%;
+        margin: 10px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .offer_list{
+        display: inline-block;
+        text-align: center;
+    }
+
+    .exit {
+        float: left;
+        left: 0;
+        top: 0;
+        background-color: black;
+        color: white;
+    }
+
+    .message_list {
+        display: inline-block;
+        text-align: center;
+    }
+</style>
+
+<body>
+    <div class="login">
+        <h2>Insert your credential</h2>
+        <div class="inputs_container">
+            <input class="inputs email" type="email" placeholder="email">
+            <input class="inputs pass" type="password" placeholder="password">
+        </div>
+        <div class="buttons_container">
+            <button class="buttons" onclick="Login()">Login</button>
+            <button class="buttons" onclick="Register()">Register</button>
+        </div>
+    </div>
+
+    <div class="add">
+        <h2 style="color:white;">CREA ASTA</h2>
+        <div class="inputs_container">
+            <input class="input crea" type="text" placeholder="Nome asta">
+        </div>
+        <button onclick="addAsta()">Crea</button>
+    </div>
+    <br>
+    <div class="container"></div>
+</body>
+</html>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var username = "";
+
+    const socket = io();
+    var progression_id = 1;
+
+    function logged(){
+        document.querySelector(".login").style.display = "none";
+        document.querySelector(".add").style.display = "block";
+        document.querySelector(".container").style.display = "flex";
+    }
+
+    async function Register(){
+        const email = document.querySelector(".email").value;
+        const pass = document.querySelector(".pass").value;
+
+        fetch("/Register", {
+            method: "POST",
+            headers:{
+                "Content-Type" : "application/json"
+            },
+            body:JSON.stringify({
+                email, pass
+            })
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success){
+                alert("Registration successful")
+            }
+            else{
+                alert("Error in registration")
+            }
+        })
+    };
+
+    async function Login(){
+        const email = document.querySelector(".email").value;
+        const pass = document.querySelector(".pass").value;
+
+        fetch("/Login", {
+            method: "POST",
+            headers: {
+                "Content-Type" : "application/json"
+            },
+            body:JSON.stringify({
+                email, pass
+            })
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success){
+                alert("Login successful")
+                username = email;
+                //logged();
+            }
+            else{
+                alert("Error in login")
+            }
+        })
+    }
+
+    async function addAsta(){
+        const name = document.querySelector(".crea").value;
+        const id = progression_id;
+
+        fetch("/add", {
+            method: "POST",
+            headers: {
+                "Content-Type" : "application/json"
+            },
+            body:JSON.stringify({
+                name, id
+            })
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success){
+                alert("Added asta successfully");
+                progression_id++;
+            }
+            else{
+                alert("Error in adding");
+            }
+        })
+    }
+
+    async function loadAste(){
+        fetch("/load", {
+            method: "GET",
+            headers: {},
+        }).then(response=>response.json())
+        .then(data=>{
+            const list = document.querySelector(".container");
+            list.innerHTML = "";
+            data.aste.forEach(asta => {
+                if (asta.over == false) {
+                    const div = document.createElement("div");
+                    div.classList.add("asta");
+                    div.setAttribute("id", `${asta.id}`);
+
+                    let  minutes, seconds;
+                    minutes = parseInt(data.timers[asta.id-1] / 60, 10);
+                    seconds = parseInt(data.timers[asta.id-1] % 60, 10);
+                    if (minutes < 10) minutes = "0" + minutes;
+                    if (seconds < 10) seconds = "0" + seconds;
+                    
+                    div.innerHTML = `<h2 class="asta_name">${asta.name}</h2>
+                    <br>
+                    <h3 class="time">Tempo rimasto: ${minutes}:${seconds}</h3>
+                    <button class="button" onClick ="enterAsta(this.parentNode.id)">Entra</button>`;
+                    list.appendChild(div);
+                    tm = document.querySelector(".time");
+                    //tm.forEach(t => {Timer(data.timers[asta.id-1], t)});
+                }
+            })
+        })
+    }
+
+    async function enterAsta(id){
+        //const id_ = event.srcElement.parentNode.id;
+        fetch("/enter", {
+            method: "GET",
+            headers:{},
+        }).then(response=>response.json())
+        .then(data=>{
+            var offerings = Array.from(data.aste[id-1].offers);
+            for (let i = 0; i < offerings.length; i++) {
+                offerings[i] = "<li>"+offerings[i]+"</li>";
+            }
+
+            var messages = Array.from(data.aste[id-1].chat);
+            for (let i = 0; i < messages.length; i++) {
+                messages[i] = "<li>"+messages[i]+"</li>";
+            }
+            const asta = document.getElementById(id);
+            const name = asta.querySelector(".asta_name").textContent;
+            const list = document.querySelector(".container");
+
+            asta.innerHTML = `<button class="exit" onClick="loadAste()">Esc</button>
+            <h2 class="asta_name">${name}</h2>
+            <br>
+            <input class="offer" type="text" placeholder="Fai un'offerta">
+            <button class="button" onClick ="offer()">Offri</button>
+            <br>
+            <input class="message" type="text" placeholder="Manda un messaggio">
+            <button class="button" onClick="message()">Send</button>
+            
+            <div class="offer_list">
+                <span>Offerte correnti:</span>
+                <ul>
+                    ${offerings.join('\n')}
+                </ul>    
+            </div>
+            <br>
+            <div class="message_list">
+                <span>Chat:</span>
+                <ul>
+                    ${messages.join("\n")}
+                </ul>
+            </div>`;
+        });
+    }
+
+    async function offer(){
+        const id = event.srcElement.parentNode.id;
+        const asta = document.getElementById(id);
+        let offer = asta.querySelector(".offer").value;
+        offer = `${username}: ` + offer;
+
+        fetch("/offer", {
+            method: "POST",
+            headers:{
+                "Content-Type" : "application/json"
+            },
+            body:JSON.stringify({
+                offer, id
+            })
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success) {
+                alert("Offer successful");
+                enterAsta(id);
+            }
+            else{
+                alert("Error in offering");
+            }
+        })
+    }
+
+    async function message(){
+        const id = event.srcElement.parentNode.id;
+        const asta = document.getElementById(id);
+        let message = asta.querySelector(".message").value;
+        message = `${username}: `+ message;
+
+        fetch("/message", {
+            method: "POST",
+            headers:{
+                "Content-Type" : "application/json"
+            },
+            body:JSON.stringify({
+                message, id
+            })
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success) {
+                alert("Message sent successfully");
+                enterAsta(id);
+            }
+            else{
+                alert("Error in sending message");
+            }
+        })
+    }
+
+    function deleteAsta(id, user, max) {
+        asta = document.getElementById(id);
+        name = asta.querySelector(".asta_name").textContent;
+        asta.remove();
+        alert(`L'asta ${name} è finita, vince l'offerta di ${user}: ${max}`);
+    }
+
+    socket.on("astaAdd", () => {
+        loadAste();
+    })
+
+    socket.on("astaEnd", (id, user, max) => {
+        deleteAsta(id, user, max);
+    })
+</script>
